@@ -1,0 +1,29 @@
+/** { margin: 0; padding: 0; }*/
+/*html { height: 101%; }*/
+h1 {
+    text-align: center;
+}
+
+nav {
+  text-align: center;
+}
+
+nav a {
+  font-size: 1.3rem;
+  margin-right: 5px;
+  /*text-align: center;*/
+}
+
+footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  background-color: #efefef;
+}
+
+/*#content form{ margin:0 auto; }*/
+#left{float: left;}
+#right { float:right;}
+#loader { display:none;}

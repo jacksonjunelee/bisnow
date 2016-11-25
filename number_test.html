@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Simonetta:400,900|Balthazar">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <title>Number Test</title>
+  </head>
+  <body>
+    <div>
+      <header>
+        <h1>Number Test</h1>
+      </header>
+
+      <nav>
+        <a href="http://www.google.com">Google</a><span>|</span>
+        <a href="http://www.bisnow.com">Bisnow</a>
+      </nav>
+
+      <section id="answer"></section>
+
+      <section id="content">
+        <form>
+            <label>Number : </label>
+             <input id="number" type="text" name="number"><br>
+             <input id="submit" type="submit" value="Submit">
+          </form>
+          <img id="loader" src="images/default.gif" height="42" width="42">
+      </section>
+
+      <footer>
+        <h2 id="left">Bisnow Media 2016</h2>
+        <h2 id="right">Jackson Lee</h2>
+      </footer>
+
+    </div>
+
+    <script type="text/javascript">
+    $( document ).ready(function() {
+        var counter = 0;
+
+        $('#submit').click(function(e){
+          e.preventDefault();
+          if ( counter === 0 ) {
+            $('#loader').show();
+
+            setTimeout(function() {
+              $.ajax({
+                method: 'GET',
+                url: 'script.php',
+                data: { number: $('#number').val() },
+                success: function(data){
+                  $('#loader').hide();
+                  var obj = jQuery.parseJSON( data );
+                  $('#answer').append('<h1>' + obj.text + '</h1>');
+                  if ( obj.status !== 'fail' ) {
+                    counter++;
+                  }
+              }}).fail(function(error) {
+                alert(error.status + ' ' + error.statusText);
+              })
+            }, 1000);
+          }
+        })
+    });
+    </script>
+  </body>
+</html>

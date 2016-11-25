@@ -1,0 +1,61 @@
+
+1) You send roughly 30 million emails monthly through an email infrastructure service similar to SendGrid and Mandrill, called SparkPost.  SparkPost sends the message events associated with those email sends back to you via a post web hook so you can store and utilize them at a later date. Attached to this email is an example json body that you would receive from Sparkpost. You can read a description of the events included in this json here: https://support.sparkpost.com/customer/portal/articles/1976204-webhook-event-reference.
+
+Please describe the full stack of technologies you would use to receive the http requests webhook, process and store the data, and query these records in a meaningful way in the future.
+
+Which fields seem like they would be important for customer analytics? Which might be important for other reasons? What reasons?
+
+Answer:
+Ruby on Rails, Resque gem, Ruby, MYSQL, Solr
+
+In order for the webhook to send an HTTP POST to the configured URL, the url has to be set up. A url route can be set up using Ruby on Rails. The application has to be able to handle around 1 million emails a month; Rails likely by itself won't be able to handle that many requests daily. What we can do is to use a gem like activejob or resque to create background jobs, placing them on multiple queues, and processing them later. This way the amount requests won't clog my server and keep response time up. During my time at HowAboutWe, we used resque to send welcome emails to users that just signed up, send notification emails and other emails. We used to get a lot of requests and resque kept the performance of the site up. Afterwards, once the data has been received we can use JSON module for ruby to parse the json, process it and save it to a database such as MYSQL. The JSON module is part of the ruby core but we have to initialize it using require 'json'.
+
+Once the data is saved in the database we can query it and use the data. There is a lot of articles and claims in Stackoverflow that says that a MYSQL table can manage having millions of rows. The biggest problem with having so much data is not the physical size or the number of records but the amount of queries the database has to perform. The can be sped up by optimizing indexes or set up a master/slave configuration. Another alternative is to set up Solr and index the data in Solr.
+
+Fields that are important for customer analytics is the type. the type can be used to keep track if the email was received or was rejected by the user. It is important to keep track of how many people received the email and how many were clicked and opened. Also the email field is also useful in case the analytics person wants to see a more in-depth view. The campaign_id or event_id is useful because they can be used to determine how successful a specific campaign was. The rcpt_tags is useful to get data on the gender and location of the recipient. The geo_ip and user_agent is useful because it gathers data about the user's location and what sort of browser the user uses. This is helpful for the campaign managers because it allows them to focus campaigning in a specific location and it also allows developers to focus more resources into a specific browser.
+
+The type field is important because it can be used to determine what course of action to take depending if the email was received by the user or not. Such as if it is a spam email address or if the email is part of a blacklist, you can unsubscribe the user or if it bounced, you can notify the user that the email bounced. The messsage_id can be important in case the editorial team wants to determine what kind of content is successful. This data can uses can be used as data in case the editorial team wants to do some A/B testing for their content. For similar reasons, the subject, sms_text and template_id can provide some insight on what kind of content the recipient prefers. This data can be used for additional A/B testing.
+
+
+------------------------------------------------------------------------------------------
+
+2) The following two questions do not necessarily have a specific right or wrong answer, thus the how and why are important. What type of class or OOP programming structure would make sense to use in the following scenarios? How and Why?
+
+2a. You are building an open source application framework, to handle sessions you would like to use Memcache by default but allow others to create modules for other session handling services.
+2b. You have many classes which need to share some methods, some of these classes already extend another unrelated class, some do not.
+
+Answer:
+2a. I would create an abstract class for sessions. This way I can have a class variable called $default and it can be set to Memcache. If developers want to override the default, they can change the variable so then the program knows to use another session handling service. In addition, future modules can then inherit this abstract class and obtain a set of base functionality needed for the open source application to function as desired.
+
+2b. I would implement an interface on those classes. Using an interface I can add the methods to the classes and I can implement as many interfaces as I want. In addition, an interface can be implemented by 2 or more classes which are completely different and do not share their code. An abstract class would not work because classes can only extend one class. Additionally, changing the inheritance of multiple classes might cause things to break. For example, if I change the inheritance of certain classes I also change the parent variable which might cause certain code to break. In addition, this way I can be certain that the methods are implemented into those classes because the framework will throw an error if the methods are not implemented. 
+
+------------------------------------------------------------------------------------------
+
+3) You have a Mysql table with 500 Million rows. The structure is the following:
+
+CREATE TABLE `buildings` (
+
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+
+ `name` varchar(255) NOT NULL,
+
+ `type` enum('Highrise','Lowrise','Retail','Industrial') NOT NULL,
+
+`city` varchar(100) NOT NULL,
+
+ PRIMARY KEY (`id`)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+A sample query that would often need to run on the database is “SELECT * FROM posts WHERE type = ? AND city = ? LIMIT 500000”. Would you add an index or indices to this table other than the primary index? What are the pros and cons of doing so?
+
+Assuming there are no other related tables or different querying scenarios, do you think mysql is an optimal approach here? Why or why not and what might an alternative be?
+
+Answer:
+I would add an index to the items in the WHERE clause of the query, so 'type' and 'city'. The reason is because `type` and `city` are looking for particular records. Indexing those 2 rows will speed up the query search and optimize the query. Some of the negative effects of indexing a column is that it speeds up the select; however, it slows down inserts, updates and deletes because it has to write the index in addition to the data. In addition, indexing a column with limited unique values does not speed up the select much since it doesn't do much to sort out the rows; therefore, indexing `type` has less of an effect than `city` since `type` only takes in 1 of 4 different values.
+
+An alternative that might be more optimal if there is no related table or different query scenario is to use a Nosql DB like MongoDB. Nosql provides many advantages over SQL DB such as it generally processes data faster than SQL db and it is generally faster because their data model are simpler. Additionally, there is no schema so it provides more flexibility if there is insertion or update. Another method that will make searching faster is to use Solr or ElasticSearch to index the data.
+
+
+
+------------------------------------------------------------------------------------------
